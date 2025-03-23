@@ -3,13 +3,11 @@ import { NextResponse } from "next/server";
 import puppeteer from "puppeteer-core";
 import { z } from "zod";
 
-// --- Facility Highlight ---
 const FacilityHighlightSchema = z.object({
   facilityName: z.string(),
   facilityId: z.number(),
 });
 
-// --- Feature Group ---
 const FeatureGroupFeatureSchema = z.object({
   available: z.boolean(),
   featureName: z.string(),
@@ -20,7 +18,6 @@ const FeatureGroupSchema = z.object({
   features: z.array(FeatureGroupFeatureSchema),
 });
 
-// --- Content Detail ---
 const DescriptionSchema = z.object({
   short: z.string(),
 });
@@ -44,7 +41,6 @@ const ContentDetailSchema = z.object({
   contentFeatures: ContentFeaturesSchema,
 });
 
-// --- Full Property Detail ---
 const PropertyDetailSchema = z.object({
   contentDetail: ContentDetailSchema,
 });
