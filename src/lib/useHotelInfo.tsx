@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { ApiResponse, ApiResponseSchema } from "./schemas";
+import { ApiResponse, ApiResponseSchema , ApiResponseBackend } from "./schemas";
 import { ZodError } from "zod";
 
 export const useHotelInfo = ({ url }: { url: string }) => {
-  return useQuery<ApiResponse, Error>({
+  return useQuery<ApiResponseBackend, Error>({
     queryKey: ["hotelInfo", url],
     queryFn: async () => {
       const res = await fetch(
