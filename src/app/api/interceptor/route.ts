@@ -31,14 +31,22 @@ const extractHotelData = async (
 ): Promise<HotelData | undefined> => {
   const browser = await launchBrowser();
   const page = await browser.newPage();
-
+  await page.setViewport({ width: 1280, height: 720 });
   let hotelData: HotelData | undefined;
 
   try {
     await page.setUserAgent(USER_AGENT);
     await page.setRequestInterception(true);
 
-    page.on("request", (req) => req.continue());
+    page.on("request", (req) => {
+      if (
+        ["image", "stylesheet", "font", "media"].includes(req.resourceType())
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
     page.on("response", async (response) => {
       const method = response.request().method();
       const requestUrl = response.url();
@@ -59,7 +67,7 @@ const extractHotelData = async (
     });
 
     await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    // await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   } catch (err) {
     console.error("Error navigating page:", err);
   } finally {
