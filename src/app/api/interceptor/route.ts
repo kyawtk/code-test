@@ -1,4 +1,4 @@
-import { ApiResponse , HotelData, HotelDataSchema } from "@/lib/schemas";
+import { ApiResponse, HotelData, HotelDataSchema } from "@/lib/schemas";
 import chromium from "@sparticuz/chromium-min";
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer-core";
@@ -17,7 +17,9 @@ const launchBrowser = async () => {
   return puppeteer.launch({
     executablePath: isLocal
       ? process.env.CHROME_EXECUTABLE_PATH
-      : await chromium.executablePath(),
+      : await chromium.executablePath(
+          "https://saungpokki.s3.ap-southeast-1.amazonaws.com/chromium-v133.0.0-pack.tar"
+        ),
     headless: chromium.headless,
     args: isLocal ? puppeteer.defaultArgs() : chromium.args,
     defaultViewport: chromium.defaultViewport,
