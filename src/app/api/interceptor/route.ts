@@ -1,6 +1,74 @@
 import { extractFields } from "@/lib/utils";
+import { UndoIcon } from "lucide-react";
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer-core";
+import { boolean, z } from "zod";
+
+// --- Facility Highlight ---
+const FacilityHighlightSchema = z.object({
+  facilityName: z.string(),
+  facilityId: z.number(),
+});
+
+// --- Feature Group ---
+const FeatureGroupFeatureSchema = z.object({
+  available: z.boolean(),
+  featureName: z.string(),
+});
+const FeatureGroupSchema = z.object({
+  name: z.string(),
+  id: z.number(),
+  features: z.array(FeatureGroupFeatureSchema),
+});
+
+// --- Content Detail ---
+const DescriptionSchema = z.object({
+  short: z.string(),
+});
+
+const ContentInformationSchema = z.object({
+  description: DescriptionSchema,
+});
+
+const ContentFeaturesSchema = z.object({
+  facilityHighlights: z.array(FacilityHighlightSchema),
+  featureGroups: z.array(FeatureGroupSchema),
+});
+
+const ContentSummarySchema = z.object({
+  displayName: z.string(),
+});
+
+const ContentDetailSchema = z.object({
+  contentSummary: ContentSummarySchema,
+  contentInformation: ContentInformationSchema,
+  contentFeatures: ContentFeaturesSchema,
+});
+
+// --- Full Property Detail ---
+const PropertyDetailSchema = z.object({
+  contentDetail: ContentDetailSchema,
+});
+
+const PropertyDetailsSearchSchema = z.object({
+  propertyDetails: z.array(PropertyDetailSchema),
+});
+
+const HotelDataSchema = z.object({
+  data: z.object({
+    propertyDetailsSearch: PropertyDetailsSearchSchema,
+  }),
+});
+type HotelData = z.infer<typeof HotelDataSchema>;
+
+const ApiResponseSchema = z.object({
+  name: z.string(),
+  hotelDescription: z.string(),
+  facilityHighlights: z.array(z.any()),
+  featureGroups: z.array(z.any()),
+});
+
+type ApiResponse = z.infer<typeof ApiResponseSchema>;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -18,7 +86,7 @@ export async function GET(request: Request) {
     headless: true,
   });
 
-  let hotelData = null;
+  let hotelData: HotelData | undefined;
   let secondaryData = null;
 
   const page = await browser.newPage();
@@ -40,8 +108,12 @@ export async function GET(request: Request) {
     const requestUrl = response.url();
 
     if (requestUrl.includes("/graphql/property") && method === "POST") {
-      const jsonResponse = await response.json();
-      hotelData = jsonResponse;
+      try {
+        const jsonResponse = await response.json();
+        hotelData = HotelDataSchema.parse(jsonResponse);
+      } catch (err) {
+        console.error("Error parsing hotelData with Zod:", err);
+      }
     }
 
     if (
@@ -54,7 +126,6 @@ export async function GET(request: Request) {
       secondaryData = jsonResponse;
       console.log("Captured Secondary Data:", jsonResponse);
     }
-
   });
 
   try {
@@ -62,7 +133,6 @@ export async function GET(request: Request) {
     await page.evaluate(() => {
       window.scrollTo(0, document.body.scrollHeight);
     });
-    
   } catch (err) {
     console.error("Error navigating to page:", err);
     await browser.close();
@@ -72,11 +142,23 @@ export async function GET(request: Request) {
     );
   }
 
-  const content =
-    hotelData?.data?.propertyDetailsSearch?.propertyDetails[0]?.contentDetail;
-  //   const hotelDescription = content?.contentInformation?.description?.short;
-  //  const facilities = content?.contentFeatures?.facilityHighlights
-  const descriptionFromLIb = extractFields(hotelData, ["short"]);
+  let content, hotelDescription, facilityHighlights, featureGroups, displayName;
+
+  if (hotelData) {
+    content =
+      hotelData?.data.propertyDetailsSearch?.propertyDetails[0]?.contentDetail;
+    hotelDescription = content?.contentInformation?.description?.short;
+    facilityHighlights = content?.contentFeatures?.facilityHighlights;
+    featureGroups = content?.contentFeatures?.featureGroups;
+    displayName = content?.contentSummary?.displayName;
+  }
+
   await browser.close();
-  return Response.json({ hotelDescription: descriptionFromLIb, secondaryData });
+
+  return NextResponse.json({
+    name: displayName,
+    hotelDescription,
+    facilityHighlights,
+    featureGroups,
+  });
 }
