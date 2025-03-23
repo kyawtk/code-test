@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import puppeteer from "puppeteer-core";
 
 chromium.setGraphicsMode = false;
+
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 const GRAPHQL_ENDPOINT = "/graphql/property";
@@ -17,9 +18,7 @@ const launchBrowser = async () => {
   return puppeteer.launch({
     executablePath: isLocal
       ? process.env.CHROME_EXECUTABLE_PATH
-      : await chromium.executablePath(
-          "https://saungpokki.s3.ap-southeast-1.amazonaws.com/chromium-v133.0.0-pack.tar"
-        ),
+      : await chromium.executablePath(process.env.BROWSER_EXECUTABLE_PATH),
     headless: chromium.headless,
     args: isLocal ? puppeteer.defaultArgs() : chromium.args,
     defaultViewport: chromium.defaultViewport,
