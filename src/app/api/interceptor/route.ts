@@ -100,8 +100,11 @@ export async function GET(request: Request) {
   });
 
   page.on("response", async (response) => {
+
     const method = response.request().method();
+
     const requestUrl = response.url();
+
 
     if (requestUrl.includes("/graphql/property") && method === "POST") {
       try {
@@ -152,6 +155,7 @@ export async function GET(request: Request) {
   await browser.close();
 
   return NextResponse.json({
+    success:true,
     name: displayName,
     hotelDescription,
     facilityHighlights,

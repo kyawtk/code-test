@@ -4,9 +4,10 @@ import { useRef, useState } from "react";
 import ReactJson from "react-json-view";
 import JsonViewer from "./components/JsonViewer";
 import { useHotelInfo } from "@/lib/useHotelInfo";
+import { ZodError } from "zod";
 export default function Home() {
   const [url, setUrl] = useState("");
-  const { refetch, data, isLoading ,error } = useHotelInfo({ url });
+  const { refetch, data, isLoading, error } = useHotelInfo({ url });
 
   return (
     <div className="container max-w-3xl mx-auto space-y-5 p-5">
@@ -28,7 +29,16 @@ export default function Home() {
           Get Hotel Info
         </button>
       </div>
-      {error && <p className="text-red-500">Error: {error.message}</p>}
+
+      {error instanceof ZodError && (
+        <ul className="mt-2 space-y-1">
+          {error.errors.map((err, index) => (
+            <li key={index}>
+              {err.path.join(".")} - {err.message}
+            </li>
+          ))}
+        </ul>
+      )}
       {isLoading && <p>Loading</p>}
 
       <pre className="bg-gray-100 p-4 rounded-md mt-5 overflow-auto">

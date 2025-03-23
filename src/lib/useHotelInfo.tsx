@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ApiResponse, ApiResponseSchema } from "./schemas";
+import { ZodError } from "zod";
 
 export const useHotelInfo = ({ url }: { url: string }) => {
   return useQuery<ApiResponse, Error>({
@@ -16,10 +17,13 @@ export const useHotelInfo = ({ url }: { url: string }) => {
         const validatedData = ApiResponseSchema.parse(raw);
         return validatedData;
       } catch (error) {
-        console.error("Data validation failed:", error);
+        if (error instanceof ZodError) {
+          throw error;
+        }
         throw new Error("Invalid data received from API");
       }
     },
+    retry: false,
     enabled: false,
   });
 };

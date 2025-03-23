@@ -54,7 +54,6 @@ export const HotelDataSchema = z.object({
   }),
 });
 
-// Frontend-specific API response schema (matches your route handler's return shape)
 export const ApiResponseSchema = z.object({
   name: z.string(),
   hotelDescription: z.string(),
@@ -62,5 +61,5 @@ export const ApiResponseSchema = z.object({
   featureGroups: z.array(FeatureGroupSchema),
 });
 
-// TypeScript type for the API response
+
 export type ApiResponse = z.infer<typeof ApiResponseSchema>;
