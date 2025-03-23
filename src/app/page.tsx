@@ -6,7 +6,7 @@ import JsonViewer from "./components/JsonViewer";
 import { useHotelInfo } from "@/lib/useHotelInfo";
 export default function Home() {
   const [url, setUrl] = useState("");
-  const { refetch, data, isLoading } = useHotelInfo({ url });
+  const { refetch, data, isLoading ,error } = useHotelInfo({ url });
 
   return (
     <div className="container max-w-3xl mx-auto space-y-5 p-5">
@@ -28,6 +28,7 @@ export default function Home() {
           Get Hotel Info
         </button>
       </div>
+      {error && <p className="text-red-500">Error: {error.message}</p>}
       {isLoading && <p>Loading</p>}
 
       <pre className="bg-gray-100 p-4 rounded-md mt-5 overflow-auto">

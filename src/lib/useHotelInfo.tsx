@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { ApiResponse, ApiResponseSchema } from "./schemas";
 
 export const useHotelInfo = ({ url }: { url: string }) => {
-  return useQuery({
+  return useQuery<ApiResponse, Error>({
     queryKey: ["hotelInfo", url],
     queryFn: async () => {
       const res = await fetch(
@@ -10,8 +11,14 @@ export const useHotelInfo = ({ url }: { url: string }) => {
           method: "GET",
         }
       );
-      const data = await res.json();
-      return data;
+      const raw = await res.json();
+      try {
+        const validatedData = ApiResponseSchema.parse(raw);
+        return validatedData;
+      } catch (error) {
+        console.error("Data validation failed:", error);
+        throw new Error("Invalid data received from API");
+      }
     },
     enabled: false,
   });
