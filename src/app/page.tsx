@@ -1,23 +1,12 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
+import ReactJson from "react-json-view";
+import JsonViewer from "./components/JsonViewer";
+import { useHotelInfo } from "@/lib/useHotelInfo";
 export default function Home() {
   const [url, setUrl] = useState("");
-
-  const { refetch, data, isLoading } = useQuery({
-    queryKey: ["hotelInfo", url],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/interceptor?url=${encodeURIComponent(url)}`,
-        {
-          method: "GET",
-        }
-      );
-      const data = await res.json();
-      return data;
-    },
-    enabled: false,
-  });
+  const { refetch, data, isLoading } = useHotelInfo({ url });
 
   return (
     <div className="container max-w-3xl mx-auto space-y-5 p-5">
@@ -42,7 +31,7 @@ export default function Home() {
       {isLoading && <p>Loading</p>}
 
       <pre className="bg-gray-100 p-4 rounded-md mt-5 overflow-auto">
-        {JSON.stringify(data, null, 2)}
+        <JsonViewer data={data} />
       </pre>
     </div>
   );

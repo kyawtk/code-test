@@ -1,8 +1,7 @@
-import { extractFields } from "@/lib/utils";
-import { UndoIcon } from "lucide-react";
+import chromium from "@sparticuz/chromium-min";
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer-core";
-import { boolean, z } from "zod";
+import { z } from "zod";
 
 // --- Facility Highlight ---
 const FacilityHighlightSchema = z.object({
@@ -70,20 +69,21 @@ const ApiResponseSchema = z.object({
 
 type ApiResponse = z.infer<typeof ApiResponseSchema>;
 
+chromium.setGraphicsMode = false;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const urlToFetch = searchParams.get("url") as string;
 
-  let executablePath =
-    process.platform === "win32"
-      ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-      : process.platform === "darwin"
-      ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-      : "/usr/bin/chromium-browser"; // Linux
+  const isLocal = !!process.env.CHROME_EXECUTABLE_PATH;
 
   const browser = await puppeteer.launch({
-    executablePath,
-    headless: true,
+    executablePath: isLocal
+      ? process.env.CHROME_EXECUTABLE_PATH
+      : await chromium.executablePath(),
+    headless: chromium.headless,
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
   });
 
   let hotelData: HotelData | undefined;
