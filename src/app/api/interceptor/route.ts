@@ -78,7 +78,7 @@ export async function GET(request: Request) {
       ? process.env.CHROME_EXECUTABLE_PATH
       : await chromium.executablePath(),
     headless: chromium.headless,
-    args: chromium.args,
+    args: isLocal ? puppeteer.defaultArgs() : chromium.args,
     defaultViewport: chromium.defaultViewport,
   });
 
