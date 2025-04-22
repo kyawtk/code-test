@@ -1,14 +1,11 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
-import { useRef, useState } from "react";
-import ReactJson from "react-json-view";
-import JsonViewer from "./components/JsonViewer";
 import { useHotelInfo } from "@/lib/useHotelInfo";
+import { useState } from "react";
 import { ZodError } from "zod";
+import JsonViewer from "./components/JsonViewer";
 export default function Home() {
   const [url, setUrl] = useState("");
   const { refetch, data, isLoading, error } = useHotelInfo({ url });
-
   return (
     <div className="container max-w-3xl mx-auto space-y-5 p-5">
       <h1 className="text-3xl font-bold text-center mb-5">

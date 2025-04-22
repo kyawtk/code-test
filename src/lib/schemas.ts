@@ -56,15 +56,12 @@ export const HotelDataSchema = z.object({
 
 export const ApiResponseSchema = z.object({
   name: z.string(),
-  success:z.boolean(),
+  success: z.boolean(),
   hotelDescription: z.string(),
   facilityHighlights: z.array(FacilityHighlightSchema),
   featureGroups: z.array(FeatureGroupSchema),
 });
 
 export type ApiResponseBackend = z.infer<typeof ApiResponseSchema>;
-
-export type ApiResponse = Partial<ApiResponseBackend>;
-
 
 export type HotelData = z.infer<typeof HotelDataSchema>;

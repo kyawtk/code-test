@@ -1,7 +1,8 @@
-import { ApiResponse, HotelData, HotelDataSchema } from "@/lib/schemas";
+import { HotelData, HotelDataSchema } from "@/lib/schemas";
 import chromium from "@sparticuz/chromium-min";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer-core";
+import { z } from "zod";
 
 chromium.setGraphicsMode = false;
 
@@ -35,6 +36,7 @@ const extractHotelData = async (
 
   try {
     await page.setUserAgent(USER_AGENT);
+
     await page.setRequestInterception(true);
 
     page.on("request", (req) => {
@@ -46,6 +48,7 @@ const extractHotelData = async (
         req.continue();
       }
     });
+
     page.on("response", async (response) => {
       const method = response.request().method();
       const requestUrl = response.url();
@@ -65,7 +68,7 @@ const extractHotelData = async (
       }
     });
 
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+    await page.goto(url);
     // await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   } catch (err) {
     console.error("Error navigating page:", err);
@@ -76,7 +79,7 @@ const extractHotelData = async (
   return hotelData;
 };
 
-const transformHotelData = (hotelData?: HotelData): ApiResponse => {
+const transformHotelData = (hotelData?: HotelData) => {
   if (!hotelData) {
     return { success: false };
   }
@@ -92,12 +95,22 @@ const transformHotelData = (hotelData?: HotelData): ApiResponse => {
   };
 };
 
-export async function GET(
-  request: Request
-): Promise<NextResponse<ApiResponse>> {
-  const { searchParams } = new URL(request.url);
-  const url = searchParams.get("url");
+export async function GET(request: NextRequest): Promise<Response> {
+  let searchParams = request.nextUrl.searchParams;
+  const querySchema = z.object({
+    url: z.string().url(),
+  });
+  let url = searchParams.get("url");
+  const result = querySchema.safeParse({ url });
 
+  if (!result.success) {
+    return NextResponse.json(
+      { success: false, error: "Invalid or missing URL" },
+      { status: 400 }
+    );
+  }
+
+  url = result.data.url;
   if (!url || typeof url !== "string") {
     return NextResponse.json(
       { success: false, error: "Invalid or missing URL" },
